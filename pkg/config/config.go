@@ -11,7 +11,6 @@ import (
 type WebServer struct {
 	Port        int    `toml:"port"`
 	RoutePrefix string `toml:"route_prefix"`
-	Version     string `toml:"version"`
 }
 
 type App struct {

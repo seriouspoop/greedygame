@@ -1,4 +1,3 @@
 [WEBSERVER]
     port=9000
-    version="/v1"
     route_prefix="/delivery"
