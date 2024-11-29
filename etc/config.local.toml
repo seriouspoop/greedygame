@@ -1,3 +1,6 @@
 [WEBSERVER]
     port=9000
     route_prefix="/delivery"
+    service="delivery"
+[LOG]
+    level="DEBUG"

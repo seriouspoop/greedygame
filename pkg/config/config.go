@@ -11,10 +11,16 @@ import (
 type WebServer struct {
 	Port        int    `toml:"port"`
 	RoutePrefix string `toml:"route_prefix"`
+	Service     string `toml:"service"`
+}
+
+type Log struct {
+	Level string `toml:"level"`
 }
 
 type App struct {
 	WebServer WebServer
+	Log       Log
 }
 
 func LoadConfig() (*App, error) {
