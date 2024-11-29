@@ -6,7 +6,6 @@ require (
 	github.com/gorilla/mux v1.8.1
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/rs/zerolog v1.33.0
-	golang.org/x/exp v0.0.0-20241108190413-2d47ceb2692f
 )
 
 require (
