@@ -7,7 +7,7 @@ import (
 	"seriouspoop/greedygame/pkg/svc"
 )
 
-func writeErrorResponse(err error, r *http.Request, w http.ResponseWriter, res interface{}) {
+func writeErrorResponse(err error, r *http.Request, w http.ResponseWriter) {
 	ctx := r.Context()
 	if errors.Is(err, svc.ErrNoData) {
 		middleware.WriteJsonHttpErrorResponse(ctx, w, http.StatusNoContent, err)

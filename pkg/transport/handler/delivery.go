@@ -16,7 +16,7 @@ func Delivery(s *svc.Svc, logger *zerolog.Logger) http.HandlerFunc {
 		country := r.URL.Query().Get("country")
 
 		if app == "" || os == "" || country == "" {
-			writeErrorResponse(svc.ErrImportantFieldMissing, r, w, nil)
+			writeErrorResponse(svc.ErrImportantFieldMissing, r, w)
 			return
 		}
 
