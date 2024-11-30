@@ -22,7 +22,7 @@ func NewHTTPServer(webConfig config.WebServer, svc *svc.Svc, logger *zerolog.Log
 }
 
 func (h *Http) Initialize(ctx context.Context) error {
-	router := NewRouter(h.svc, h.logger).Initialize(h.WebConfig.RoutePrefix)
+	router := NewRouter(h.svc, h.logger).Initialize()
 	h.HttpServer.Addr = fmt.Sprintf(":%d", h.WebConfig.Port)
 	h.HttpServer.Handler = router
 	return nil
