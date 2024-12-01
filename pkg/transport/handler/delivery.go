@@ -2,12 +2,11 @@ package handler
 
 import (
 	"net/http"
+	"seriouspoop/greedygame/go-common/logging"
 	"seriouspoop/greedygame/pkg/svc"
-
-	"github.com/rs/zerolog"
 )
 
-func Delivery(s *svc.Svc, logger *zerolog.Logger) http.HandlerFunc {
+func Delivery(s servicer, logger *logging.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		// logger := logger.With().Ctx(ctx).Logger()

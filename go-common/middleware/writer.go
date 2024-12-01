@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-	"seriouspoop/greedygame/go-common/logger"
+	"seriouspoop/greedygame/go-common/logging"
 
 	"github.com/rs/zerolog"
 )
@@ -22,7 +22,7 @@ type ErrorMessage struct {
 }
 
 func WriteJsonHttpErrorResponse(ctx context.Context, w http.ResponseWriter, statusCode int, err error) {
-	logger := logger.New(zerolog.DebugLevel)
+	logger := logging.New(zerolog.DebugLevel).WithCtxLogger(ctx)
 	if err == nil {
 		w.WriteHeader(statusCode)
 		return
@@ -31,14 +31,14 @@ func WriteJsonHttpErrorResponse(ctx context.Context, w http.ResponseWriter, stat
 	errMsg := ErrorMessage{Code: statusCode, Message: err.Error()}
 	response, err := json.Marshal(errMsg)
 	if err != nil {
-		logger.Error().Ctx(ctx).Err(err).Msg("JSON marshal failed")
+		logger.Error().Err(err).Msg("JSON marshal failed")
 	}
 	err = BuildHTTPResponse(w, response, ContentTypeJson, statusCode)
 
 	if err != nil {
 		// error while building http response
 		// maybe writer was closed
-		logger.Error().Ctx(ctx).Err(err).Msg("HTTP reponse writing failed")
+		logger.Error().Err(err).Msg("HTTP reponse writing failed")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

@@ -1,18 +1,17 @@
 package db
 
 import (
+	"seriouspoop/greedygame/go-common/logging"
 	"seriouspoop/greedygame/pkg/repo/db/doc"
-
-	"github.com/rs/zerolog"
 )
 
 type DB struct {
 	campaignRec      []*doc.CampaignRec
 	targetingRuleRec []*doc.TargetingRuleRec
-	logger           *zerolog.Logger
+	logger           *logging.Logger
 }
 
-func New(logger *zerolog.Logger) (*DB, error) {
+func New(logger *logging.Logger) (*DB, error) {
 	return &DB{
 		campaignRec:      doc.CampaignDummy,
 		targetingRuleRec: doc.TargetingRuleDummy,

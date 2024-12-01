@@ -1,4 +1,4 @@
-package logger
+package logging
 
 import (
 	"seriouspoop/greedygame/go-common/globals"

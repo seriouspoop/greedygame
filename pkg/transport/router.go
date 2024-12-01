@@ -2,6 +2,7 @@ package transport
 
 import (
 	"net/http"
+	"seriouspoop/greedygame/go-common/logging"
 	"seriouspoop/greedygame/go-common/middleware"
 	"seriouspoop/greedygame/pkg/svc"
 	"seriouspoop/greedygame/pkg/transport/handler"
@@ -13,10 +14,10 @@ import (
 type Router struct {
 	*mux.Router
 	svc    *svc.Svc
-	logger *zerolog.Logger
+	logger *logging.Logger
 }
 
-func NewRouter(svc *svc.Svc, logger *zerolog.Logger) *Router {
+func NewRouter(svc *svc.Svc, logger *logging.Logger) *Router {
 	return &Router{mux.NewRouter(), svc, logger}
 }
 

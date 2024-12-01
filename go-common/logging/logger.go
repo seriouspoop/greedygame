@@ -1,12 +1,22 @@
-package logger
+package logging
 
 import (
+	"context"
 	"os"
 
 	"github.com/rs/zerolog"
 )
 
-func NewWithService(service, logLevel string) (*zerolog.Logger, error) {
+type Logger struct {
+	logger *zerolog.Logger
+}
+
+func (l *Logger) WithCtxLogger(ctx context.Context) *zerolog.Logger {
+	lg := l.logger.With().Ctx(ctx).Logger()
+	return &lg
+}
+
+func NewWithService(service, logLevel string) (*Logger, error) {
 	level, err := zerolog.ParseLevel(logLevel)
 	if err != nil {
 		return nil, err
@@ -21,10 +31,11 @@ func NewWithService(service, logLevel string) (*zerolog.Logger, error) {
 		Logger()
 
 	log = log.Hook(NewTraceHook())
-	return &log, nil
+	l := &Logger{&log}
+	return l, nil
 }
 
-func New(logLevel zerolog.Level) *zerolog.Logger {
+func New(logLevel zerolog.Level) *Logger {
 	log := zerolog.New(os.Stderr).
 		Level(logLevel).
 		With().
@@ -33,5 +44,6 @@ func New(logLevel zerolog.Level) *zerolog.Logger {
 		Logger()
 
 	log = log.Hook(NewTraceHook())
-	return &log
+	l := &Logger{&log}
+	return l
 }

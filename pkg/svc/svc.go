@@ -1,7 +1,7 @@
 package svc
 
 import (
-	"github.com/rs/zerolog"
+	"seriouspoop/greedygame/go-common/logging"
 )
 
 const (
@@ -12,10 +12,11 @@ const (
 )
 
 type Svc struct {
-	logger *zerolog.Logger
+	db     dbHelper
+	logger *logging.Logger
 	health error
 }
 
-func New(logger *zerolog.Logger) *Svc {
-	return &Svc{logger: logger}
+func New(db dbHelper, logger *logging.Logger) *Svc {
+	return &Svc{db: db, logger: logger}
 }
