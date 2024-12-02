@@ -47,3 +47,8 @@ func New(logLevel zerolog.Level) *Logger {
 	l := &Logger{&log}
 	return l
 }
+
+func NewTestLogger() *Logger {
+	log := zerolog.New(os.Stderr)
+	return &Logger{&log}
+}
