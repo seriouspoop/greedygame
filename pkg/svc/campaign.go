@@ -64,9 +64,7 @@ func (s *Svc) matchInInclude(d *model.Dimensions, target string) bool {
 }
 
 func (s *Svc) matchInExclude(d *model.Dimensions, target string) bool {
-	if d == nil {
-		return false
-	} else if len(d.Exclude) == 0 {
+	if d == nil || len(d.Exclude) == 0 {
 		return false
 	}
 	return slices.Contains(d.Exclude, target)
