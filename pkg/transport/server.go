@@ -4,7 +4,7 @@ import (
 	"context"
 	"seriouspoop/greedygame/go-common/logging"
 	"seriouspoop/greedygame/pkg/config"
-	"seriouspoop/greedygame/pkg/repo/db"
+	"seriouspoop/greedygame/pkg/repo/postgres"
 	"seriouspoop/greedygame/pkg/svc"
 )
 
@@ -18,7 +18,7 @@ func NewServer(ctx context.Context, appCfg *config.App) (*server, error) {
 		return nil, err
 	}
 
-	db, err := db.New(logger)
+	db, err := postgres.New(logger)
 	if err != nil {
 		return nil, err
 	}

@@ -1,11 +1,32 @@
 package doc
 
+import (
+	"net/url"
+	"seriouspoop/greedygame/pkg/model"
+)
+
 type CampaignRec struct {
 	ID     string
 	Name   string
 	Image  string
 	CTA    string
 	Status string
+}
+
+func (c *CampaignRec) ToModel() *model.Campaign {
+	docToModelStatus := map[string]model.Status{
+		"ACTIVE":   model.StatusActive,
+		"INACTIVE": model.StatusInactive,
+	}
+
+	image, _ := url.Parse(c.Image)
+	return &model.Campaign{
+		ID:     model.CampaignID(c.ID),
+		Name:   c.Name,
+		Image:  image,
+		CTA:    c.CTA,
+		Status: docToModelStatus[c.Status],
+	}
 }
 
 var CampaignDummy = []*CampaignRec{

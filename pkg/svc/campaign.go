@@ -9,7 +9,7 @@ import (
 	"github.com/rs/zerolog"
 )
 
-func (s *Svc) GetCampaignForDelivery(ctx context.Context, app, os, country string) ([]*model.Campaign, error) {
+func (s *Svc) GetActiveCampaignForDelivery(ctx context.Context, app, os, country string) ([]*model.Campaign, error) {
 	log := s.logger.WithCtxLogger(ctx)
 	if app == "" || os == "" || country == "" {
 		log.Error().Err(ErrImportantFieldMissing).Msg("empty or invalid app, os or country")
@@ -47,7 +47,13 @@ func (s *Svc) GetCampaignForDelivery(ctx context.Context, app, os, country strin
 		Strs("campaign-ids", utils.StringSlice(campaignIDs)).
 		Msg("campaign IDs found for the given target")
 
-	return nil, nil
+	campaigns, err := s.db.GetCampaignFromCIDs(ctx, campaignIDs, model.StatusActive)
+	if err != nil {
+		log.Error().Err(err).Strs("campaign-ids", utils.StringSlice(campaignIDs)).Msg("error while getting campaigns with cids")
+		return nil, err
+	}
+
+	return campaigns, nil
 }
 
 func (s *Svc) matchInInclude(d *model.Dimensions, target string) bool {

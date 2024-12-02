@@ -15,14 +15,15 @@ func (c CampaignID) Valid() bool {
 type Status int
 
 const (
-	StatusInactive Status = iota
+	StatusUnknown Status = iota
+	StatusInactive
 	StatusActive
 )
 
 type Campaign struct {
 	ID     CampaignID
 	Name   string
-	Image  url.URL
+	Image  *url.URL
 	CTA    string
 	Status Status
 }

@@ -1,8 +1,8 @@
-package db
+package postgres
 
 import (
 	"seriouspoop/greedygame/go-common/logging"
-	"seriouspoop/greedygame/pkg/repo/db/doc"
+	"seriouspoop/greedygame/pkg/repo/postgres/doc"
 )
 
 type DB struct {

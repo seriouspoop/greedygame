@@ -6,5 +6,5 @@ import (
 )
 
 type servicer interface {
-	GetCampaignForDelivery(ctx context.Context, app, os, country string) ([]*model.Campaign, error)
+	GetActiveCampaignForDelivery(ctx context.Context, app, os, country string) ([]*model.Campaign, error)
 }
