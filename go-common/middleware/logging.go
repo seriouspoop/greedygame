@@ -2,17 +2,18 @@ package middleware
 
 import (
 	"net/http"
+	"seriouspoop/greedygame/go-common/logging"
 	"time"
 
 	"github.com/rs/zerolog"
 )
 
 type Log struct {
-	logger *zerolog.Logger
+	logger *logging.Logger
 	level  zerolog.Level
 }
 
-func NewLog(logger *zerolog.Logger, level zerolog.Level) *Log {
+func NewLog(logger *logging.Logger, level zerolog.Level) *Log {
 	return &Log{logger: logger, level: level}
 }
 
@@ -22,8 +23,8 @@ func (l *Log) LogMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 		elapsed := time.Since(start)
 
-		l.logger.WithLevel(l.level).
-			Ctx(r.Context()).
+		l.logger.WithCtxLogger(r.Context()).
+			WithLevel(l.level).
 			Int64("elapsed", elapsed.Nanoseconds()).Send()
 	})
 }

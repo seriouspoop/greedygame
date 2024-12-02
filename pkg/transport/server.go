@@ -2,9 +2,10 @@ package transport
 
 import (
 	"context"
+	"seriouspoop/greedygame/go-common/logging"
 	"seriouspoop/greedygame/pkg/config"
+	"seriouspoop/greedygame/pkg/repo/postgres"
 	"seriouspoop/greedygame/pkg/svc"
-	"seriouspoop/greedygame/pkg/utils/logger"
 )
 
 type server struct {
@@ -12,12 +13,17 @@ type server struct {
 }
 
 func NewServer(ctx context.Context, appCfg *config.App) (*server, error) {
-	logger, err := logger.New(appCfg.WebServer.Service, appCfg.Log.Level)
+	logger, err := logging.NewWithService(appCfg.WebServer.Service, appCfg.Log.Level)
 	if err != nil {
 		return nil, err
 	}
 
-	s := svc.New(logger)
+	db, err := postgres.New(logger)
+	if err != nil {
+		return nil, err
+	}
+
+	s := svc.New(db, logger)
 
 	return &server{
 		http: NewHTTPServer(appCfg.WebServer, s, logger),

@@ -9,13 +9,12 @@ import (
 )
 
 type WebServer struct {
-	Port        int    `toml:"port"`
-	RoutePrefix string `toml:"route_prefix"`
-	Service     string `toml:"service"`
+	Port    int
+	Service string
 }
 
 type Log struct {
-	Level string `toml:"level"`
+	Level string
 }
 
 type App struct {
