@@ -6,21 +6,37 @@ import (
 	"seriouspoop/greedygame/pkg/model"
 	"slices"
 
-	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.uber.org/zap"
 )
 
 func (s *Svc) GetActiveCampaignForDelivery(ctx context.Context, app, os, country string) ([]*model.Campaign, error) {
-	log := s.logger.WithCtxLogger(ctx)
+	ctx, span := s.tracer.Start(ctx, "get-active-campaign-for-delivery")
+	defer span.End()
+
+	log := s.logger.Ctx(ctx).With(
+		zap.Dict("target",
+			zap.String("app", app),
+			zap.String("country", country),
+			zap.String("os", os)))
+
 	if app == "" || os == "" || country == "" {
-		log.Error().Err(ErrImportantFieldMissing).Msg("empty or invalid app, os or country")
+		log.Error("empty or invalid app, os or country", zap.Error(ErrImportantFieldMissing))
+		span.SetStatus(codes.Error, "empty or invalid app, os or country")
+		span.RecordError(ErrImportantFieldMissing)
 		return nil, ErrImportantFieldMissing
 	}
 
 	targetingRules, err := s.db.GetTargetingRules(ctx)
 	if err != nil {
-		log.Error().Err(err).Msg("error while getting targeting rules")
+		log.Error("error while getting targeting rules", zap.Error(err))
+		span.SetStatus(codes.Error, "error while getting targeting rules")
+		span.RecordError(err)
 		return nil, err
 	}
+
+	span.AddEvent("targeting rules retrieved from db")
 
 	campaignIDs := []model.CampaignID{}
 
@@ -35,24 +51,26 @@ func (s *Svc) GetActiveCampaignForDelivery(ctx context.Context, app, os, country
 	}
 
 	if len(campaignIDs) == 0 {
-		log.Debug().Msg("no campaignIDs found")
+		log.Info("no campaign IDs found")
+		// do not set span status to error, nothing failed!
+		span.RecordError(ErrNoData)
 		return nil, ErrNoData
 	}
 
-	log.Debug().
-		Dict("target", zerolog.Dict().
-			Str("app", app).
-			Str("country", country).
-			Str("os", os)).
-		Strs("campaign-ids", utils.StringSlice(campaignIDs)).
-		Msg("campaign IDs found for the given target")
+	log.Debug("campaign IDs found for the given target",
+		zap.Strings("campaign_ids", utils.StringSlice(campaignIDs)))
+	span.SetAttributes(attribute.StringSlice("campaign.ids", utils.StringSlice(campaignIDs)))
 
 	campaigns, err := s.db.GetCampaignFromCIDs(ctx, campaignIDs, model.StatusActive)
 	if err != nil {
-		log.Error().Err(err).Strs("campaign-ids", utils.StringSlice(campaignIDs)).Msg("error while getting campaigns with cids")
+		log.Error("error while getting campaigns with cids", zap.Error(err))
+		span.SetStatus(codes.Error, "error while getting campaigns with cids")
+		span.RecordError(err)
 		return nil, err
 	}
 
+	log.Info("campaigns retrieved from db")
+	span.AddEvent("campaigns retrieved from db")
 	return campaigns, nil
 }
 

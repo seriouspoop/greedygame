@@ -2,6 +2,7 @@ package svc
 
 import (
 	"seriouspoop/greedygame/go-common/logging"
+	"seriouspoop/greedygame/go-common/observer"
 )
 
 const (
@@ -14,9 +15,10 @@ const (
 type Svc struct {
 	db     dbHelper
 	logger *logging.Logger
+	tracer *observer.Tracer
 	health error
 }
 
-func New(db dbHelper, logger *logging.Logger) *Svc {
-	return &Svc{db: db, logger: logger}
+func New(db dbHelper, logger *logging.Logger, tracer *observer.Tracer) *Svc {
+	return &Svc{db: db, logger: logger, tracer: tracer}
 }

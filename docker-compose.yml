@@ -7,6 +7,12 @@ services:
       - postgres
     command: /greedygame
 
+  otel-collector:
+    image: otel/opentelemetry-collector-dev:latest
+    ports:
+      - 4317:4317
+      - 55680:55680
+
   postgres:
     image: postgres:17-alpine
     restart: always

@@ -1,54 +1,71 @@
 package logging
 
 import (
-	"context"
-	"os"
-
-	"github.com/rs/zerolog"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type Logger struct {
-	logger *zerolog.Logger
+	logger *zap.Logger
 }
 
-func (l *Logger) WithCtxLogger(ctx context.Context) *zerolog.Logger {
-	lg := l.logger.With().Ctx(ctx).Logger()
-	return &lg
+func (l *Logger) Sync() error {
+	return l.logger.Sync()
 }
 
-func NewWithService(service, logLevel string) (*Logger, error) {
-	level, err := zerolog.ParseLevel(logLevel)
+func NewWithService(service, logLevel string, core ...zapcore.Core) (*Logger, error) {
+	level, err := zap.ParseAtomicLevel(logLevel)
 	if err != nil {
 		return nil, err
 	}
 
-	log := zerolog.New(os.Stderr).
-		Level(level).
-		With().
-		Caller().
-		Timestamp().
-		Str("service", service).
-		Logger()
+	config := zap.Config{
+		Level:            level,
+		Encoding:         "json",
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+		InitialFields:    map[string]interface{}{"service": service},
+		EncoderConfig:    zap.NewProductionEncoderConfig(),
+	}
 
-	log = log.Hook(NewTraceHook())
-	l := &Logger{&log}
-	return l, nil
+	if level.Level() == zap.DebugLevel {
+		config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
+	}
+
+	log, err := config.Build()
+	if err != nil {
+		return nil, err
+	}
+
+	if len(core) > 0 {
+		otelCore := zap.WrapCore(func(c zapcore.Core) zapcore.Core {
+			core = append(core, c)
+			return zapcore.NewTee(core...)
+		})
+		log = log.WithOptions(otelCore)
+	}
+	return &Logger{log}, nil
 }
 
-func New(logLevel zerolog.Level) *Logger {
-	log := zerolog.New(os.Stderr).
-		Level(logLevel).
-		With().
-		Caller().
-		Timestamp().
-		Logger()
+func New(level zapcore.Level) *zap.Logger {
 
-	log = log.Hook(NewTraceHook())
-	l := &Logger{&log}
-	return l
+	config := zap.Config{
+		Level:            zap.NewAtomicLevelAt(level),
+		Encoding:         "json",
+		OutputPaths:      []string{"stdout"},
+		ErrorOutputPaths: []string{"stderr"},
+		EncoderConfig:    zap.NewProductionEncoderConfig(),
+	}
+
+	if level == zap.DebugLevel {
+		config.EncoderConfig = zap.NewDevelopmentEncoderConfig()
+	}
+
+	log := zap.Must(config.Build())
+	return log
 }
 
 func NewTestLogger() *Logger {
-	log := zerolog.New(os.Stderr)
-	return &Logger{&log}
+	log := zap.NewNop()
+	return &Logger{log}
 }

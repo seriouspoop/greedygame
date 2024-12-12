@@ -5,6 +5,8 @@ import (
 	"seriouspoop/greedygame/go-common/logging"
 	"seriouspoop/greedygame/go-common/middleware"
 	"seriouspoop/greedygame/pkg/svc"
+
+	"go.uber.org/zap"
 )
 
 type DeliveryResponse struct {
@@ -16,7 +18,7 @@ type DeliveryResponse struct {
 func Delivery(s servicer, logger *logging.Logger) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		logger := logger.WithCtxLogger(ctx)
+		logger := logger.Ctx(ctx)
 		app := r.URL.Query().Get("app")
 		os := r.URL.Query().Get("os")
 		country := r.URL.Query().Get("country")
@@ -29,7 +31,7 @@ func Delivery(s servicer, logger *logging.Logger) http.HandlerFunc {
 		campaigns, err := s.GetActiveCampaignForDelivery(ctx, app, os, country)
 
 		if err != nil {
-			logger.Error().Err(err).Msg("error while getting campaigns for delivery")
+			logger.Error("error while getting campaigns for delivery", zap.Error(err))
 			writeErrorResponse(err, r, w)
 			return
 		}

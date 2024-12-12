@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"seriouspoop/greedygame/go-common/logging"
 
-	"github.com/rs/zerolog"
+	"go.uber.org/zap"
 )
 
 const (
@@ -22,7 +22,7 @@ type ErrorMessage struct {
 }
 
 func WriteJsonHttpErrorResponse(ctx context.Context, w http.ResponseWriter, statusCode int, err error) {
-	logger := logging.New(zerolog.DebugLevel).WithCtxLogger(ctx)
+	logger := logging.New(zap.DebugLevel)
 	if err == nil {
 		w.WriteHeader(statusCode)
 		return
@@ -31,14 +31,14 @@ func WriteJsonHttpErrorResponse(ctx context.Context, w http.ResponseWriter, stat
 	errMsg := ErrorMessage{Code: statusCode, Message: err.Error()}
 	response, err := json.Marshal(errMsg)
 	if err != nil {
-		logger.Error().Err(err).Msg("JSON marshal failed")
+		logger.Error("JSON marshal failed", zap.Error(err))
 	}
 	err = BuildHTTPResponse(w, response, ContentTypeJson, statusCode)
 
 	if err != nil {
 		// error while building http response
 		// maybe writer was closed
-		logger.Error().Err(err).Msg("HTTP reponse writing failed")
+		logger.Error("HTTP reponse writing failed", zap.Error(err))
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
