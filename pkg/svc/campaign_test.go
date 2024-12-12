@@ -154,11 +154,12 @@ func TestGetActiveCampaignForDelivery(t *testing.T) {
 
 			ctx := context.Background()
 			tracer := observer.NewNoopTracer()
+			mockCtx := tracer.MockContext(ctx)
 			logger := logging.NewTestLogger()
 			db := NewMockdbHelper(ctrl)
 
 			s := New(db, logger, tracer)
-			test.setMocks(tracer.ContextFromNilSpan(ctx), db, test.targetingRule, test.campaignIDs, test.campaigns, test.err)
+			test.setMocks(mockCtx, db, test.targetingRule, test.campaignIDs, test.campaigns, test.err)
 			campaigns, err := s.GetActiveCampaignForDelivery(ctx, test.app, test.os, test.country)
 
 			assert.Equal(t, test.err, err)

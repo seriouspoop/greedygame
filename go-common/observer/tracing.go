@@ -20,7 +20,7 @@ type Tracer struct {
 }
 
 // returns a no-op tracer, to be used for testing.
-// Provider is nil, Shutdown is not required
+// Provider is nil, Shutdown is not required.
 func NewNoopTracer() *Tracer {
 	provider := noop.NewTracerProvider()
 	tracer := provider.Tracer("test/tracer")
@@ -47,7 +47,7 @@ func NewTracer(ctx context.Context, name string, ex Exporter) (*Tracer, error) {
 
 // Wrapper ---------------------------------------
 
-// return name of the tracer in use
+// return name of the tracer in use.
 func (t *Tracer) Name() string {
 	return t.name
 }
@@ -60,7 +60,9 @@ func (t *Tracer) Start(ctx context.Context, spanName string) (context.Context, t
 	return t.tracer.Start(ctx, spanName)
 }
 
-func (t *Tracer) ContextFromNilSpan(ctx context.Context) context.Context {
+// returns mock context, mimics contexts produced by tracers.
+// To be used for testing.
+func (t *Tracer) MockContext(ctx context.Context) context.Context {
 	return trace.ContextWithSpan(ctx, noop.Span{})
 }
 
