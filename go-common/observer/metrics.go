@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdoutmetric"
 	"go.opentelemetry.io/otel/metric"
@@ -63,8 +64,10 @@ func setupMetricExporter(ctx context.Context, ex Exporter) (e sdkmetric.Exporter
 	switch ex {
 	case ConsoleExporter:
 		e, err = newMetricConsoleExporter()
-	case OTLPExporter:
-		e, err = newMetricOTLPExporter(ctx)
+	case OTLPHttpExporter:
+		e, err = newMetricOTLPHttpExporter(ctx)
+	case OTLPGrpcExporter:
+		e, err = newMetricOTLPGrpcExporter(ctx)
 	default:
 		e, err = newMetricConsoleExporter()
 	}
@@ -74,8 +77,12 @@ func setupMetricExporter(ctx context.Context, ex Exporter) (e sdkmetric.Exporter
 	return
 }
 
-func newMetricOTLPExporter(ctx context.Context) (sdkmetric.Exporter, error) {
+func newMetricOTLPHttpExporter(ctx context.Context) (sdkmetric.Exporter, error) {
 	return otlpmetrichttp.New(ctx)
+}
+
+func newMetricOTLPGrpcExporter(ctx context.Context) (sdkmetric.Exporter, error) {
+	return otlpmetricgrpc.New(ctx)
 }
 
 func newMetricConsoleExporter() (sdkmetric.Exporter, error) {

@@ -6,6 +6,7 @@ import (
 
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gorilla/mux/otelmux"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -94,8 +95,10 @@ func setupTraceExporter(ctx context.Context, ex Exporter) (e sdktrace.SpanExport
 	switch ex {
 	case ConsoleExporter:
 		e, err = newTraceConsoleExporter()
-	case OTLPExporter:
-		e, err = newTraceOTLPExporter(ctx)
+	case OTLPHttpExporter:
+		e, err = newTraceOTLPHttpExporter(ctx)
+	case OTLPGrpcExporter:
+		e, err = newTraceOTLPGrpcExporter(ctx)
 	default:
 		e, err = newTraceConsoleExporter()
 	}
@@ -105,8 +108,12 @@ func setupTraceExporter(ctx context.Context, ex Exporter) (e sdktrace.SpanExport
 	return
 }
 
-func newTraceOTLPExporter(ctx context.Context) (sdktrace.SpanExporter, error) {
+func newTraceOTLPHttpExporter(ctx context.Context) (sdktrace.SpanExporter, error) {
 	return otlptracehttp.New(ctx)
+}
+
+func newTraceOTLPGrpcExporter(ctx context.Context) (sdktrace.SpanExporter, error) {
+	return otlptracegrpc.New(ctx)
 }
 
 func newTraceConsoleExporter() (sdktrace.SpanExporter, error) {

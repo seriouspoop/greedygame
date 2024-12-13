@@ -11,7 +11,8 @@ type Exporter int
 
 const (
 	ConsoleExporter Exporter = iota
-	OTLPExporter
+	OTLPHttpExporter
+	OTLPGrpcExporter
 )
 
 type Observer struct {
