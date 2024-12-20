@@ -1,19 +1,16 @@
 package logging
 
 import (
-	"seriouspoop/greedygame/go-common/globals"
+	"context"
 
-	"github.com/rs/zerolog"
+	"go.opentelemetry.io/otel/trace"
+	"go.uber.org/zap"
 )
 
-type tracingHook struct{}
-
-func NewTraceHook() *tracingHook {
-	return &tracingHook{}
-}
-
-func (t *tracingHook) Run(e *zerolog.Event, level zerolog.Level, msg string) {
-	ctx := e.GetCtx()
-	traceId := ctx.Value(globals.TraceIDContextKey).(string)
-	e.Str("trace-id", traceId)
+func (l *Logger) Ctx(ctx context.Context) *zap.Logger {
+	span := trace.SpanFromContext(ctx)
+	traceID := zap.String("trace_id", span.SpanContext().TraceID().String())
+	spanID := zap.String("span_id", span.SpanContext().SpanID().String())
+	fields := []zap.Field{traceID, spanID}
+	return l.logger.With(fields...)
 }

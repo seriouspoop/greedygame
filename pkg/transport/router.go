@@ -4,27 +4,30 @@ import (
 	"net/http"
 	"seriouspoop/greedygame/go-common/logging"
 	"seriouspoop/greedygame/go-common/middleware"
+	"seriouspoop/greedygame/go-common/observer"
 	"seriouspoop/greedygame/pkg/svc"
 	"seriouspoop/greedygame/pkg/transport/handler"
 
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog"
+	"go.uber.org/zap"
 )
 
 type Router struct {
 	*mux.Router
 	svc    *svc.Svc
 	logger *logging.Logger
+	obs    *observer.Observer
 }
 
-func NewRouter(svc *svc.Svc, logger *logging.Logger) *Router {
-	return &Router{mux.NewRouter(), svc, logger}
+func NewRouter(svc *svc.Svc, logger *logging.Logger, obs *observer.Observer) *Router {
+	return &Router{mux.NewRouter(), svc, logger, obs}
 }
 
 func (r *Router) Initialize() *Router {
-	logMw := middleware.NewLog(r.logger, zerolog.InfoLevel)
+	logMw := middleware.NewLog(r.logger, zap.InfoLevel)
+	traceMw := r.obs.TraceSDK()
 
-	r.Use(middleware.TraceMiddleware)
+	r.Use(traceMw.TraceHTTPMiddleware)
 	r.Use(logMw.LogMiddleware)
 
 	r.HandleFunc("/healthcheck", handler.HealthCheck(r.svc)).Methods(http.MethodGet)

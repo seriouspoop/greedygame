@@ -17,8 +17,6 @@ CMD ["greedygame"]
 #stage 2
 FROM alpine AS runner
 
-RUN apk --no-cache add ca-certificates
-
 #copy local file so we can also run the locally built container directly
 COPY --from=builder /usr/src/app/etc /usr/src/app/etc
 COPY --from=builder /usr/local/bin/greedygame /

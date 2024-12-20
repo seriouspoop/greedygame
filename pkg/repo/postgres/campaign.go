@@ -5,6 +5,8 @@ import (
 	"seriouspoop/greedygame/go-common/utils"
 	"seriouspoop/greedygame/pkg/model"
 	"seriouspoop/greedygame/pkg/svc"
+
+	"go.uber.org/zap"
 )
 
 var statusModelToString = map[model.Status]string{
@@ -16,9 +18,9 @@ var statusModelToString = map[model.Status]string{
 // Get campaigns from cid and status.
 // Use StatusUnknown to get all records
 func (d *DB) GetCampaignFromCIDs(ctx context.Context, campaignIDs []model.CampaignID, status model.Status) ([]*model.Campaign, error) {
-	log := d.logger.WithCtxLogger(ctx)
+	log := d.logger.Ctx(ctx)
 	if len(campaignIDs) == 0 {
-		log.Error().Err(svc.ErrBadInput).Msg("no campaign IDs to process")
+		log.Error("no campaign IDs to process", zap.Error(svc.ErrBadInput))
 		return nil, svc.ErrBadInput
 	}
 
@@ -26,7 +28,7 @@ func (d *DB) GetCampaignFromCIDs(ctx context.Context, campaignIDs []model.Campai
 	campaigns := []*model.Campaign{}
 
 	if _, ok := statusModelToString[status]; !ok {
-		log.Error().Err(svc.ErrBadInput).Msg("invalid status")
+		log.Error("invalid status", zap.Error(svc.ErrBadInput))
 		return nil, svc.ErrBadInput
 	}
 

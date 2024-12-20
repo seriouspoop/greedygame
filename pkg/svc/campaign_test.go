@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/url"
 	"seriouspoop/greedygame/go-common/logging"
+	"seriouspoop/greedygame/go-common/observer"
 	"seriouspoop/greedygame/pkg/model"
 	"testing"
 
@@ -152,11 +153,13 @@ func TestGetActiveCampaignForDelivery(t *testing.T) {
 			defer ctrl.Finish()
 
 			ctx := context.Background()
+			tracer := observer.NewNoopTracer()
+			mockCtx := tracer.MockContext(ctx)
 			logger := logging.NewTestLogger()
 			db := NewMockdbHelper(ctrl)
 
-			s := New(db, logger)
-			test.setMocks(ctx, db, test.targetingRule, test.campaignIDs, test.campaigns, test.err)
+			s := New(db, logger, tracer)
+			test.setMocks(mockCtx, db, test.targetingRule, test.campaignIDs, test.campaigns, test.err)
 			campaigns, err := s.GetActiveCampaignForDelivery(ctx, test.app, test.os, test.country)
 
 			assert.Equal(t, test.err, err)
