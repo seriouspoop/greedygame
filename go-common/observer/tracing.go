@@ -30,7 +30,7 @@ func NewNoopTracer() *Tracer {
 	return &Tracer{name: "test/tracer", tracer: tracer, provider: nil}
 }
 
-func NewTracer(ctx context.Context, name string, ex Exporter) (*Tracer, error) {
+func NewTracer(ctx context.Context, name string, ex *Exporter) (*Tracer, error) {
 	// setup exporter based on service choice
 	e, err := setupTraceExporter(ctx, ex)
 	if err != nil {
@@ -91,14 +91,14 @@ func newTraceProvider(exp sdktrace.SpanExporter, name string) (*sdktrace.TracerP
 
 // Exporters -----------------------------------------
 
-func setupTraceExporter(ctx context.Context, ex Exporter) (e sdktrace.SpanExporter, err error) {
-	switch ex {
+func setupTraceExporter(ctx context.Context, ex *Exporter) (e sdktrace.SpanExporter, err error) {
+	switch ex.Type {
 	case ConsoleExporter:
 		e, err = newTraceConsoleExporter()
 	case OTLPHttpExporter:
-		e, err = newTraceOTLPHttpExporter(ctx)
+		e, err = newTraceOTLPHttpExporter(ctx, ex.HttpEndpoint)
 	case OTLPGrpcExporter:
-		e, err = newTraceOTLPGrpcExporter(ctx)
+		e, err = newTraceOTLPGrpcExporter(ctx, ex.GrcpEndpoint)
 	default:
 		e, err = newTraceConsoleExporter()
 	}
@@ -108,12 +108,16 @@ func setupTraceExporter(ctx context.Context, ex Exporter) (e sdktrace.SpanExport
 	return
 }
 
-func newTraceOTLPHttpExporter(ctx context.Context) (sdktrace.SpanExporter, error) {
-	return otlptracehttp.New(ctx)
+func newTraceOTLPHttpExporter(ctx context.Context, otlpEndpoint string) (sdktrace.SpanExporter, error) {
+	insecureOpts := otlptracehttp.WithInsecure()
+	endpoint := otlptracehttp.WithEndpoint(otlpEndpoint)
+	return otlptracehttp.New(ctx, endpoint, insecureOpts)
 }
 
-func newTraceOTLPGrpcExporter(ctx context.Context) (sdktrace.SpanExporter, error) {
-	return otlptracegrpc.New(ctx)
+func newTraceOTLPGrpcExporter(ctx context.Context, otlpEndpoint string) (sdktrace.SpanExporter, error) {
+	insecureOpts := otlptracegrpc.WithInsecure()
+	endpoint := otlptracegrpc.WithEndpoint(otlpEndpoint)
+	return otlptracegrpc.New(ctx, endpoint, insecureOpts)
 }
 
 func newTraceConsoleExporter() (sdktrace.SpanExporter, error) {

@@ -17,7 +17,7 @@ type Meter struct {
 	provider *sdkmetric.MeterProvider
 }
 
-func NewMeter(ctx context.Context, name string, ex Exporter) (*Meter, error) {
+func NewMeter(ctx context.Context, name string, ex *Exporter) (*Meter, error) {
 	exp, err := setupMetricExporter(ctx, ex)
 	if err != nil {
 		return nil, err
@@ -60,14 +60,14 @@ func newMeterProvider(exp sdkmetric.Exporter, name string) (*sdkmetric.MeterProv
 
 // Expoters --------------------------------------
 
-func setupMetricExporter(ctx context.Context, ex Exporter) (e sdkmetric.Exporter, err error) {
-	switch ex {
+func setupMetricExporter(ctx context.Context, ex *Exporter) (e sdkmetric.Exporter, err error) {
+	switch ex.Type {
 	case ConsoleExporter:
 		e, err = newMetricConsoleExporter()
 	case OTLPHttpExporter:
-		e, err = newMetricOTLPHttpExporter(ctx)
+		e, err = newMetricOTLPHttpExporter(ctx, ex.HttpEndpoint)
 	case OTLPGrpcExporter:
-		e, err = newMetricOTLPGrpcExporter(ctx)
+		e, err = newMetricOTLPGrpcExporter(ctx, ex.GrcpEndpoint)
 	default:
 		e, err = newMetricConsoleExporter()
 	}
@@ -77,12 +77,16 @@ func setupMetricExporter(ctx context.Context, ex Exporter) (e sdkmetric.Exporter
 	return
 }
 
-func newMetricOTLPHttpExporter(ctx context.Context) (sdkmetric.Exporter, error) {
-	return otlpmetrichttp.New(ctx)
+func newMetricOTLPHttpExporter(ctx context.Context, otlpEndpoint string) (sdkmetric.Exporter, error) {
+	insecureOpts := otlpmetrichttp.WithInsecure()
+	endpointOpts := otlpmetrichttp.WithEndpoint(otlpEndpoint)
+	return otlpmetrichttp.New(ctx, insecureOpts, endpointOpts)
 }
 
-func newMetricOTLPGrpcExporter(ctx context.Context) (sdkmetric.Exporter, error) {
-	return otlpmetricgrpc.New(ctx)
+func newMetricOTLPGrpcExporter(ctx context.Context, otlpEndpoint string) (sdkmetric.Exporter, error) {
+	insecureOpts := otlpmetricgrpc.WithInsecure()
+	endpointOpts := otlpmetricgrpc.WithEndpoint(otlpEndpoint)
+	return otlpmetricgrpc.New(ctx, insecureOpts, endpointOpts)
 }
 
 func newMetricConsoleExporter() (sdkmetric.Exporter, error) {

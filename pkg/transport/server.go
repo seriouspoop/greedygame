@@ -16,8 +16,11 @@ type server struct {
 }
 
 func NewServer(ctx context.Context, appCfg *config.App) (*server, error) {
+	// setup exporter
+	ex := observer.NewProductionExporter("otel-collector")
+
 	// setup observer
-	obs, err := observer.New(ctx, "seriouspoop/greedygame", observer.ConsoleExporter)
+	obs, err := observer.New(ctx, "seriouspoop/greedygame", ex)
 	if err != nil {
 		return nil, err
 	}

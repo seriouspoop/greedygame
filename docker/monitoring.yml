@@ -1,0 +1,47 @@
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: otel-collector
+    command: ["--config=/etc/otelcol-contrib/config.yml"]
+    volumes:
+      - ./values/otel-collector-config.yml:/etc/otelcol-contrib/config.yml
+    ports:
+      - 4317:4317
+      - 4318:4318
+    depends_on:
+      - tempo
+
+  initTempo:
+    image: &tempoImage grafana/tempo:latest
+    container_name: initTempo
+    user: root
+    entrypoint:
+      - "chown"
+      - "10001:10001"
+      - "/var/tempo"
+    volumes:
+      - ./tempo-data:/var/tempo
+
+  tempo:
+    image: *tempoImage
+    container_name: tempo
+    command: ["-config.file=/etc/tempo.yml"]
+    #? No ports required as tempo is accessed internally
+    # ports:
+    #   - 4317
+    volumes:
+      - ./tempo.yml:/etc/tempo.yml
+      - ./tempo-data:/var/tempo
+    depends_on:
+      - initTempo
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+      - GF_FEATURE_TOGGLES_ENABLE=traceqlEditor
+    ports:
+      - 3000:3000

@@ -12,7 +12,7 @@ import (
 )
 
 func (s *Svc) GetActiveCampaignForDelivery(ctx context.Context, app, os, country string) ([]*model.Campaign, error) {
-	ctx, span := s.tracer.Start(ctx, "HTTP GET /delivery")
+	ctx, span := s.tracer.Start(ctx, "get_active_campaign_for_delivery")
 	defer span.End()
 
 	log := s.logger.Ctx(ctx).With(
