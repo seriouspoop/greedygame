@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package deliverypb;
+option go_package="seriouspoop/greedygame/protos/go/deliverypb";
+
+import "google/api/annotations.proto";
+
+message DeliveryRequest {
+    string app = 1;
+    string country = 2;
+    string os = 2;
+}
+
+message DeliveryResponseItem {
+    string cid = 1;
+    string image = 2;
+    string cta = 3;
+}
+
+message DeliveryResponse {
+    repeated DeliveryResponseItem items = 1;
+}
+
+service Delivery {
+    
+    rpc GetDelivery(DeliveryRequest) returns (DeliveryResponse) {
+        option (google.api.http) = {
+            post: "/v1/delivery"
+        };
+    }
+}

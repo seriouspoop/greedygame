@@ -8,4 +8,5 @@ var (
 	ErrBadInput              = errors.New("invalid data found")
 	ErrImportantFieldMissing = errors.New("important data field missing")
 	ErrDuplicateData         = errors.New("duplicate data")
+	ErrTimeout               = errors.New("timeout error")
 )

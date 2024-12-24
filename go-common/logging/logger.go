@@ -1,6 +1,8 @@
 package logging
 
 import (
+	"context"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -13,6 +15,10 @@ func (l *Logger) Sync() error {
 	return l.logger.Sync()
 }
 
+func (l *Logger) Logger() *zap.Logger {
+	return l.logger
+}
+
 func NewWithService(service, logLevel string, core ...zapcore.Core) (*Logger, error) {
 	level, err := zap.ParseAtomicLevel(logLevel)
 	if err != nil {
@@ -20,12 +26,13 @@ func NewWithService(service, logLevel string, core ...zapcore.Core) (*Logger, er
 	}
 
 	config := zap.Config{
-		Level:            level,
-		Encoding:         "json",
-		OutputPaths:      []string{"stdout"},
-		ErrorOutputPaths: []string{"stderr"},
-		InitialFields:    map[string]interface{}{"service": service},
-		EncoderConfig:    zap.NewProductionEncoderConfig(),
+		Level:             level,
+		Encoding:          "json",
+		OutputPaths:       []string{"stdout"},
+		ErrorOutputPaths:  []string{"stderr"},
+		InitialFields:     map[string]interface{}{"service": service},
+		EncoderConfig:     zap.NewProductionEncoderConfig(),
+		DisableStacktrace: true,
 	}
 
 	if level.Level() == zap.DebugLevel {
@@ -65,7 +72,7 @@ func New(level zapcore.Level) *zap.Logger {
 	return log
 }
 
-func NewTestLogger() *Logger {
+func NewTestLogger(ctx context.Context) *Logger {
 	log := zap.NewNop()
 	return &Logger{log}
 }

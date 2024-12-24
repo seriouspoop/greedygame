@@ -1,0 +1,42 @@
+version: "3"
+
+dotenv: ["./etc/config.local.env"]
+
+env:
+  GOOSE_DRIVER: postgres
+  GOOSE_DBSTRING: "{{.DL_MS_POSTGRES_CONNECTION_STRING}}/{{.DL_MS_POSTGRES_DATABASE}}"
+  GOOSE_MIGRATION_DIR: pkg/repo/db/schema/migrations
+  GOOSE_SEED_DIR: pkg/repo/db/schema/seed
+
+tasks:
+  # docker commands
+  docker-up:
+    cmds:
+      - source ./etc/config.local.env
+      - docker compose up
+
+  # commands for migrations
+  migration-gen:
+    cmd: goose create {{.CLI_ARGS}} sql
+
+  migration-up:
+    cmd: goose up
+
+  migration-down:
+    cmd: goose down
+
+  migration-down-to:
+    cmd: goose down-to {{.CLI_ARGS}}
+
+  reset-db:
+    cmd: goose down-to 0
+
+  # seeding commands
+  seed-gen:
+    cmd: goose -dir {{.GOOSE_SEED_DIR}} create {{.CLI_ARGS}} sql
+
+  seed-up:
+    cmd: goose -dir {{.GOOSE_SEED_DIR}} -no-versioning up
+
+  seed-down:
+    cmd: goose -dir {{.GOOSE_SEED_DIR}} -no-versioning reset
