@@ -82,8 +82,8 @@ func newTraceProvider(exp sdktrace.SpanExporter, name string) (*sdktrace.TracerP
 		return nil, err
 	}
 
-	// TODO - add sampling option
 	return sdktrace.NewTracerProvider(
+		sdktrace.WithSampler(sdktrace.AlwaysSample()),
 		sdktrace.WithBatcher(exp),
 		sdktrace.WithResource(r),
 	), nil

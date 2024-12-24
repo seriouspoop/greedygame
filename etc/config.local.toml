@@ -1,5 +1,0 @@
-[WEBSERVER]
-    port=9000
-    service="delivery"
-[LOG]
-    level="DEBUG"

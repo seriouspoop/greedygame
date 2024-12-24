@@ -1,38 +1,57 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"seriouspoop/greedygame/go-common/db/postgres"
 
-	"github.com/pelletier/go-toml/v2"
+	"github.com/joho/godotenv"
+	"github.com/kelseyhightower/envconfig"
 )
 
-type WebServer struct {
-	Port    int
-	Service string
-}
+const (
+	envPrefix = "DL_MS"
+)
 
-type Log struct {
-	Level string
+type Postgres struct {
+	postgres.Config
+}
+type WebServer struct {
+	Port int `required:"true" split_words:"true"`
 }
 
 type App struct {
-	WebServer WebServer
-	Log       Log
+	ServiceName string `required:"true" split_words:"true"`
+	LogLevel    string `required:"true" split_words:"true"`
+	WebServer   WebServer
+	Postgres    Postgres
 }
 
-func LoadConfig() (*App, error) {
-	_, d, _, _ := runtime.Caller(0)
-	b, err := os.ReadFile(filepath.Join(filepath.Dir(d), "/../../etc/config.local.toml"))
-	if err != nil {
+func FromEnv() (*App, error) {
+	fromFileToEnv()
+	cfg := &App{}
+	if err := envconfig.Process(envPrefix, cfg); err != nil {
 		return nil, err
+	}
+	return cfg, nil
+}
+
+func fromFileToEnv() {
+	cfgFileName := os.Getenv("ENV_FILE")
+	if cfgFileName != "" {
+		if err := godotenv.Load(cfgFileName); err != nil {
+			fmt.Println("error: failure reading ENV_FILE file, ", err)
+		} else {
+			return
+		}
 	}
 
-	app := &App{}
-	err = toml.Unmarshal(b, app)
-	if err != nil {
-		return nil, err
+	_, b, _, _ := runtime.Caller(0)
+	cfgFileName = filepath.Join(filepath.Dir(b), "../../etc/config.local.env")
+
+	if err := godotenv.Load(cfgFileName); err != nil {
+		fmt.Println("error: failure reading config file:, ", err)
 	}
-	return app, nil
 }

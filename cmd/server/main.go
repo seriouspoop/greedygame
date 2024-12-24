@@ -9,7 +9,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	appCfg, err := config.LoadConfig()
+	appCfg, err := config.FromEnv()
 	if err != nil {
 		log.Fatal(err)
 	}

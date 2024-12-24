@@ -5,7 +5,7 @@ import (
 	"seriouspoop/greedygame/go-common/logging"
 	"seriouspoop/greedygame/go-common/observer"
 	"seriouspoop/greedygame/pkg/config"
-	"seriouspoop/greedygame/pkg/repo/postgres"
+	"seriouspoop/greedygame/pkg/repo/db"
 	"seriouspoop/greedygame/pkg/svc"
 )
 
@@ -17,7 +17,7 @@ type server struct {
 
 func NewServer(ctx context.Context, appCfg *config.App) (*server, error) {
 	// setup exporter
-	ex := observer.NewProductionExporter("otel-collector")
+	ex := observer.NewDevelopmentExporter()
 
 	// setup observer
 	obs, err := observer.New(ctx, "seriouspoop/greedygame", ex)
@@ -25,12 +25,12 @@ func NewServer(ctx context.Context, appCfg *config.App) (*server, error) {
 		return nil, err
 	}
 
-	logger, err := logging.NewWithService(appCfg.WebServer.Service, appCfg.Log.Level, obs.LogSDK().NewLoggerCore())
+	logger, err := logging.NewWithService(appCfg.ServiceName, appCfg.LogLevel, obs.LogSDK().NewLoggerCore())
 	if err != nil {
 		return nil, err
 	}
 
-	db, err := postgres.New(logger)
+	db, err := db.New(ctx, appCfg.Postgres, logger, obs.TraceSDK())
 	if err != nil {
 		return nil, err
 	}

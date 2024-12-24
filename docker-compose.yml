@@ -1,42 +1,27 @@
 services:
-  web:
-    build: .
-    container_name: web
+  # delivery-ms:
+  # build: .
+  # container_name: delivery-ms
+  # ports:
+  #   - 9000:9000
+  # # depends_on:
+  # #   - postgres
+  # command: /greedygame
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${DL_MS_POSTGRES_USERNAME}
+      POSTGRES_PASSWORD: ${DL_MS_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${DL_MS_POSTGRES_DATABASE}
+      PGDATA: /var/lib/postgresql/data
     ports:
-      - 9000:9000
-    # depends_on:
-    #   - postgres
-    command: /greedygame
+      - ${DL_MS_POSTGRES_PORT}:${DL_MS_POSTGRES_PORT}
+    volumes:
+      - database:/var/lib/postgresql/data:rw
 
-  # postgres:
-  #   image: postgres:17-alpine
-  #   restart: always
-  #   environment:
-  #     POSTGRES_USER: ${DB_USER}
-  #     POSTGRES_PASSWORD: ${DB_PASSWORD}
-  #     POSTGRES_DB: ${DB_NAME}
-  #     PGDATA: /var/lib/postgresql/data
-  #   ports:
-  #     - 5432:5432
-  #   volumes:
-  #     - database:/var/lib/postgresql/data:rw
-  #     - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-
-  # pgadmin:
-  #   image: elestio/pgadmin:REL-8_12
-  #   restart: always
-  #   environment:
-  #     PGADMIN_DEFAULT_EMAIL: admin@linuxhint.com
-  #     PGADMIN_DEFAULT_PASSWORD: secret
-  #     PGADMIN_LISTEN_PORT: 80
-  #   ports:
-  #     - 8080:80
-  #   volumes:
-  #     - pgadmin-data:/var/lib/pgadmin
-  #   links:
-  #     - postgres:pgsql-server
-# volumes:
-#   database:
-#     driver: local
-#   pgadmin-data:
-#     driver: local
+volumes:
+  database:
+    driver: local

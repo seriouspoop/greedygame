@@ -155,7 +155,7 @@ func TestGetActiveCampaignForDelivery(t *testing.T) {
 			ctx := context.Background()
 			tracer := observer.NewNoopTracer()
 			mockCtx := tracer.MockContext(ctx)
-			logger := logging.NewTestLogger()
+			logger := logging.NewTestLogger(ctx)
 			db := NewMockdbHelper(ctrl)
 
 			s := New(db, logger, tracer)
