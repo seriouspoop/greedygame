@@ -11,6 +11,8 @@ func (s *Svc) SetUnhealthy(ctx context.Context, err error) {
 }
 
 func (s *Svc) IsUnhealthy(ctx context.Context) bool {
+	ctx, span := s.tracer.Start(ctx, "[SVC]_health_check")
+	defer span.End()
 	s.isResponsive(ctx)
 	return s.health != nil
 }

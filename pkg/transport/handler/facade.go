@@ -5,6 +5,10 @@ import (
 	"seriouspoop/greedygame/pkg/model"
 )
 
-type servicer interface {
+type deliveryServicer interface {
 	GetActiveCampaignForDelivery(ctx context.Context, app, os, country string) ([]*model.Campaign, error)
+}
+
+type healthServicer interface {
+	IsUnhealthy(context.Context) bool
 }

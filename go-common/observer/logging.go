@@ -85,5 +85,5 @@ func newLogOTLPGrpcExporter(ctx context.Context, otlpEndpoint string) (sdklogs.E
 }
 
 func newLogConsoleExporter() (sdklogs.Exporter, error) {
-	return stdoutlog.New()
+	return stdoutlog.New(stdoutlog.WithPrettyPrint())
 }

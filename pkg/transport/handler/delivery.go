@@ -1,51 +1,61 @@
 package handler
 
 import (
-	"net/http"
+	"context"
 	"seriouspoop/greedygame/go-common/logging"
-	"seriouspoop/greedygame/go-common/middleware"
-	"seriouspoop/greedygame/pkg/svc"
+	"seriouspoop/greedygame/protos/go/deliverypb"
+	"time"
 
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
+	"google.golang.org/grpc"
 )
 
-type DeliveryResponse struct {
-	CampaignID string `json:"cid"`
-	Image      string `json:"img"`
-	CTA        string `json:"cta"`
+type DeliveryHandler struct {
+	s      deliveryServicer
+	logger *logging.Logger
+	deliverypb.UnimplementedDeliveryServer
 }
 
-func Delivery(s servicer, logger *logging.Logger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ctx := r.Context()
-		logger := logger.Ctx(ctx)
-		app := r.URL.Query().Get("app")
-		os := r.URL.Query().Get("os")
-		country := r.URL.Query().Get("country")
+// New Grpc server handler
+func NewDeliveryHandler(grpc *grpc.Server, s deliveryServicer, logger *logging.Logger) {
+	handler := &DeliveryHandler{s: s, logger: logger}
+	deliverypb.RegisterDeliveryServer(grpc, handler)
+}
 
-		if app == "" || os == "" || country == "" {
-			writeErrorResponse(svc.ErrImportantFieldMissing, r, w)
-			return
-		}
+// New Grpc gateway handler
+func NewDeliveryGatewayHandler(ctx context.Context, runtime *runtime.ServeMux, s deliveryServicer, logger *logging.Logger) {
+	handler := &DeliveryHandler{s: s, logger: logger}
+	deliverypb.RegisterDeliveryHandlerServer(ctx, runtime, handler)
+}
 
-		campaigns, err := s.GetActiveCampaignForDelivery(ctx, app, os, country)
+func (d *DeliveryHandler) GetDelivery(ctx context.Context, req *deliverypb.DeliveryRequest) (*deliverypb.DeliveryResponse, error) {
+	logger := d.logger.Ctx(ctx)
+	app := req.GetApp()
+	os := req.GetOs()
+	country := req.GetCountry()
 
-		if err != nil {
-			logger.Error("error while getting campaigns for delivery", zap.Error(err))
-			writeErrorResponse(err, r, w)
-			return
-		}
+	logger.Info("helloooo")
+	time.Sleep(5 * time.Second)
+	campaigns, err := d.s.GetActiveCampaignForDelivery(ctx, app, os, country)
 
-		response := []DeliveryResponse{}
-		for _, campaign := range campaigns {
-			delivery := DeliveryResponse{
-				CampaignID: campaign.ID.String(),
-				Image:      campaign.Image.String(),
-				CTA:        campaign.CTA,
-			}
-			response = append(response, delivery)
-		}
-
-		middleware.WriteJsonHttpResponse(ctx, w, http.StatusOK, response)
+	if err != nil {
+		logger.Error("error while getting campaigns for delivery", zap.Error(err))
+		return nil, grpcError(err)
 	}
+
+	deliveryItems := make([]*deliverypb.DeliveryResponseItem, 0, len(campaigns))
+	for _, campaign := range campaigns {
+		delivery := &deliverypb.DeliveryResponseItem{
+			Cid:   campaign.ID.String(),
+			Image: campaign.Image.String(),
+			Cta:   campaign.CTA,
+		}
+		deliveryItems = append(deliveryItems, delivery)
+	}
+
+	res := &deliverypb.DeliveryResponse{
+		Items: deliveryItems,
+	}
+	return res, nil
 }

@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package commonpb;
+option go_package="seriouspoop/greedygame/protos/go/commonpb";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+
+
+message HealthResponse{
+    int32 code = 1;
+    string message = 2;
+}
+
+
+service Health {
+    rpc CheckHealth(google.protobuf.Empty) returns (HealthResponse) {
+        option (google.api.http) = {
+            get: "/healthcheck"
+        };
+    }
+}
