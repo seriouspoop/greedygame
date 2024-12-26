@@ -19,7 +19,8 @@ type Postgres struct {
 	postgres.Config
 }
 type WebServer struct {
-	Port int `required:"true" split_words:"true"`
+	RestPort int `required:"true" split_words:"true"`
+	GrpcPort int `required:"true" split_words:"true"`
 }
 
 type App struct {

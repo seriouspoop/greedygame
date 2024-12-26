@@ -90,5 +90,5 @@ func newMetricOTLPGrpcExporter(ctx context.Context, otlpEndpoint string) (sdkmet
 }
 
 func newMetricConsoleExporter() (sdkmetric.Exporter, error) {
-	return stdoutmetric.New()
+	return stdoutmetric.New(stdoutmetric.WithPrettyPrint())
 }

@@ -9,6 +9,7 @@ import (
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/exporters/stdout/stdouttrace"
+	"go.opentelemetry.io/otel/propagation"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/noop"
@@ -42,6 +43,7 @@ func NewTracer(ctx context.Context, name string, ex *Exporter) (*Tracer, error) 
 	}
 	// set global provider for all libraries using otel - otelmux etc.
 	otel.SetTracerProvider(provider)
+	otel.SetTextMapPropagator(propagation.TraceContext{})
 	tracer := provider.Tracer(name)
 	return &Tracer{name: name, tracer: tracer, provider: provider}, nil
 }
@@ -72,6 +74,10 @@ func (t *Tracer) MockContext(ctx context.Context) context.Context {
 func (t *Tracer) TraceHTTPMiddleware(next http.Handler) http.Handler {
 	// use otelmux instrumentation
 	return otelmux.Middleware(t.name).Middleware(next)
+}
+
+func (t *Tracer) TraceGRPCInterceptor() {
+
 }
 
 // SDK -------------------------------------------
@@ -121,5 +127,5 @@ func newTraceOTLPGrpcExporter(ctx context.Context, otlpEndpoint string) (sdktrac
 }
 
 func newTraceConsoleExporter() (sdktrace.SpanExporter, error) {
-	return stdouttrace.New()
+	return stdouttrace.New(stdouttrace.WithPrettyPrint())
 }

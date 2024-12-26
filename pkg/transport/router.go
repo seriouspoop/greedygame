@@ -1,42 +1,48 @@
 package transport
 
 import (
-	"net/http"
+	"context"
 	"seriouspoop/greedygame/go-common/logging"
-	"seriouspoop/greedygame/go-common/middleware"
 	"seriouspoop/greedygame/go-common/observer"
 	"seriouspoop/greedygame/pkg/svc"
 	"seriouspoop/greedygame/pkg/transport/handler"
 
-	"github.com/gorilla/mux"
-	"go.uber.org/zap"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 )
 
 type Router struct {
-	*mux.Router
+	mux    *runtime.ServeMux
 	svc    *svc.Svc
 	logger *logging.Logger
 	obs    *observer.Observer
+	// conn   *grpc.ClientConn
 }
+
+// func lund(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		ctx := context.WithValue(r.Context(), "Lund", "Value")
+// 		next.ServeHTTP(w, r.WithContext(ctx))
+// 	})
+// }
 
 func NewRouter(svc *svc.Svc, logger *logging.Logger, obs *observer.Observer) *Router {
-	return &Router{mux.NewRouter(), svc, logger, obs}
+	// TODO add custom middlewares for the mux
+	// logMw := middleware.NewLog(logger, zap.InfoLevel)
+	// traceMw := obs.TraceSDK()
+
+	mux := runtime.NewServeMux(runtime.WithMiddlewares())
+	return &Router{mux, svc, logger, obs}
 }
 
-func (r *Router) Initialize() *Router {
-	logMw := middleware.NewLog(r.logger, zap.InfoLevel)
-	traceMw := r.obs.TraceSDK()
+func (r *Router) Initialize(ctx context.Context) *Router {
 
-	r.Use(traceMw.TraceHTTPMiddleware)
-	r.Use(logMw.LogMiddleware)
+	// Gateway handlers
+	handler.NewDeliveryGatewayHandler(ctx, r.mux, r.svc, r.logger)
+	handler.NewHealthCheckGatewayHandler(ctx, r.mux, r.svc, r.logger)
 
-	r.HandleFunc("/healthcheck", handler.HealthCheck(r.svc)).Methods(http.MethodGet)
-
-	// v1
-	v1 := r.PathPrefix("/v1").Subrouter()
-
-	//delivery
-	v1.HandleFunc("/delivery", handler.Delivery(r.svc, r.logger)).Methods(http.MethodGet)
+	// // TODO - remove these and implement self handlers
+	// commonpb.RegisterHealthHandler(ctx, r.mux, r.conn)
+	// deliverypb.RegisterDeliveryHandler(ctx, r.mux, r.conn)
 
 	return r
 }

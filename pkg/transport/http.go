@@ -25,15 +25,26 @@ func NewHTTPServer(webConfig config.WebServer, obs *observer.Observer, svc *svc.
 }
 
 func (h *Http) Initialize(ctx context.Context) error {
-	router := NewRouter(h.svc, h.logger, h.obs).Initialize()
-	h.HttpServer.Addr = fmt.Sprintf(":%d", h.WebConfig.Port)
-	h.HttpServer.Handler = router
+	// Initialize gateway
+	// conn, err := grpc.NewClient(
+	// 	fmt.Sprintf(":%d", h.WebConfig.GrpcPort),
+	// 	grpc.WithTransportCredentials(insecure.NewCredentials()),
+	// 	grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
+	// )
+
+	// if err != nil {
+	// 	return err
+	// }
+	// Initialize http
+	router := NewRouter(h.svc, h.logger, h.obs).Initialize(ctx)
+	h.HttpServer.Addr = fmt.Sprintf(":%d", h.WebConfig.RestPort)
+	h.HttpServer.Handler = router.mux
 	return nil
 }
 
 func (h *Http) Run(ctx context.Context) error {
 	log := h.logger.Ctx(ctx)
-	fmt.Println("Starting server on port ", h.WebConfig.Port)
+	fmt.Println("Starting server on port ", h.WebConfig.RestPort)
 	if err := h.HttpServer.ListenAndServe(); err != nil {
 		log.Error("error while ListenAndServe", zap.Error(err))
 		return err

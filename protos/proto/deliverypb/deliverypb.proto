@@ -8,7 +8,7 @@ import "google/api/annotations.proto";
 message DeliveryRequest {
     string app = 1;
     string country = 2;
-    string os = 2;
+    string os = 3;
 }
 
 message DeliveryResponseItem {
@@ -25,7 +25,7 @@ service Delivery {
     
     rpc GetDelivery(DeliveryRequest) returns (DeliveryResponse) {
         option (google.api.http) = {
-            post: "/v1/delivery"
+            get: "/v1/delivery"
         };
     }
 }

@@ -11,6 +11,7 @@ import (
 
 type server struct {
 	http     Booter
+	grpc     Booter
 	observer *observer.Observer
 	logger   *logging.Logger
 }
@@ -39,16 +40,19 @@ func NewServer(ctx context.Context, appCfg *config.App) (*server, error) {
 
 	return &server{
 		http:     NewHTTPServer(appCfg.WebServer, obs, s, logger),
+		grpc:     NewGRPCServer(appCfg.WebServer, logger, s),
 		observer: obs,
 		logger:   logger,
 	}, nil
 }
 
 func (s *server) Initialize(ctx context.Context) error {
+	s.grpc.Initialize(ctx)
 	return s.http.Initialize(ctx)
 }
 
 func (s *server) Run(ctx context.Context) error {
+	go s.grpc.Run(ctx)
 	return s.http.Run(ctx)
 }
 
@@ -58,6 +62,10 @@ func (s *server) Shutdown(ctx context.Context) error {
 		return err
 	}
 	err = s.logger.Sync()
+	if err != nil {
+		return err
+	}
+	err = s.grpc.Shutdown(ctx)
 	if err != nil {
 		return err
 	}
